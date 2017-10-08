@@ -1,0 +1,74 @@
+
+<html>
+	<head>
+	<style>
+	#map{
+    width: 100%; 
+    height: 100%;
+  }
+</style>
+	</head>
+	<body>
+    <div id="map"></div>
+    <script>
+      var markers = [];
+
+      var map;
+
+      function initMap()
+      {
+        map = new google.maps.Map(document.getElementById('map'),
+        {
+          zoom: 4,
+          center: {lat: 0, lng: 0}
+        });
+
+        fetch("http://ergast.com/api/f1/2017.json")
+          .then(function(response)
+          {
+            response.json().then(function(data)
+            {
+              for(var i = 0; i < 17; i++)
+                {
+                  addMarker(i, data.MRData.RaceTable.Races[i]);
+                }
+            });
+          });
+      }
+
+      function addMarker(i, race) 
+      {
+        var location = race.Circuit.Location;
+      	
+        var latLng =
+        {
+          lat: Number(location.lat),
+          lng: Number(location.long)
+        };
+      	var s = 'https://api.openweathermap.org/data/2.5/weather?lat=' + latLng.lat + '&lon=' + latLng.lng + '&APPID=02df4673c1a673baee49a1a1543ebbfe';
+      	fetch(s)
+	  			.then(function(response)
+          {
+	    			response.json().then(function(data)
+            {
+	     				 var icon = "http://openweathermap.org/img/w/" + data.weather[0].icon + ".png";
+	     				 markers[i] = new google.maps.Marker(
+               {
+				          position: latLng,
+				          map: map,
+				          title: location.locality + ", " + location.country + "\n" + 
+                         race.raceName + "\n" +
+                         race.date + " " + race.time,
+				          icon: icon
+      					});
+               markers[i].addListener('click', function() {
+                  window.open(race.url);
+               });
+	   			  });
+	        });
+      }
+    </script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDSoIzlfFhPfZ50HMZXs_COUJ-HgMcD2EA&callback=initMap"
+    async defer></script>
+    	</body>
+</html>
